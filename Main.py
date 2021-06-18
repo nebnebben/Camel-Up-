@@ -22,6 +22,11 @@ class Game:
         self.board = []
         # positions of the camels
         self.positions = {}
+        # location of desert tiles, location:player_index
+        self.desert_tiles = {}
+        # Final tiles bids, list of [player_index, camel]
+        self.final_bids_winners = []
+        self.final_bids_losers = []
 
         # Board is length 16 + 1 square for terminal position
         for i in range(17):
@@ -49,8 +54,8 @@ class Game:
 
         return current_player_info, other_player_info
 
-
     def make_move(self, move, cur_round, current_player):
+
         # If pyramid tile
         if move[0] == 0:
             # increment players money
@@ -58,23 +63,68 @@ class Game:
             self.board = cur_round.advance_game(self.board)
 
         # Desert tile
-        # elif move[0] == 1:
-        # # Round betting tle
-        # elif move[0] == 2:
-        # # Overall winner
-        # elif move[0] == 3:
-        # # Overall loser
-        # elif move[0] == 4:
+        elif move[0] == 1:
+            # if tile already placed
+            if self.players[current_player].used_tile:
+                print('Already place tile for the round')
+                raise
+
+            location = move[0][0]
+            direction = move[0][1]
+
+            # Get updated board
+            self.board = cur_round.place_tile(deepcopy(self.board), location, direction)
+            # Add desert tile
+            self.desert_tiles[location] = current_player
+
+        # Round betting tile
+        elif move[0] == 2:
+            # get camel
+            camel = move[1]
+            # Get value of current tile
+            value = cur_round.tiles[camel].pop()
+            # if no tiles
+            if not value:
+                print('No more tiles')
+                raise
+
+            self.players[current_player].money += 1
+
+        # Overall winner
+        elif move[0] == 3:
+            camel = move[1]
+            if camel in self.players[current_player].total_winner_bids:
+                print('Already bid on to win')
+                raise
+            if camel in self.players[current_player].total_loser_bids:
+                print('Already bid on to lose')
+                raise
+
+            # Record bid made
+            self.final_bids_winners.append([current_player, camel])
+
+        # Overall loser
+        elif move[0] == 4:
+            camel = move[1]
+            if camel in self.players[current_player].total_winner_bids:
+                print('Already bid on to win')
+                raise
+            if camel in self.players[current_player].total_loser_bids:
+                print('Already bid on to lose')
+                raise
+
+            # Record bid made
+            self.final_bids_losers.append([current_player, camel])
 
         return cur_round
-
 
     def game_round(self):
         current_player = self.starting_player
         fin_round = False
-        cur_round = Round(self.camels, self.round_tiles)
+        cur_round = Round(deepcopy(self.camels), deepcopy(self.round_tiles))
 
         while(not fin_round):
+            print(self.board)
             # Get the current move
             # Feed in all info about player + board state
             current_player_info, other_player_info = self.get_relevant_info(current_player)
@@ -90,20 +140,53 @@ class Game:
             # Make the move
             cur_round = self.make_move(move, cur_round, current_player)
 
-            # check finish line for game end
-            if self.board[-1]:
-                fin_round = False
+            # check finish line for game end or all camels moved
+            if self.board[-1] or not cur_round.unmoved_camels:
+                fin_round = True
 
             # Make the next player the current player
-            current_player = (current_player+ 1) % len(self.players)
+            current_player = (current_player + 1) % len(self.players)
 
         # Make starting player current player
         # Player after the one that got pyramid tile
         self.starting_player = current_player
 
-        # end round
-        return
+        # Get round winners
+        winners = cur_round.get_winners(self.board)
 
+        # Remove desert tiles
+        self.board = cur_round.remove_tiles(deepcopy(self.board))
+        self.desert_tiles = {}
+
+        # end round
+        return winners
+
+    def round_end_scoring(self, winners):
+        for player in self.players:
+            for bid in player.cur_round_bids:
+                # If won then gain money equal to tile
+                if bid == winners[0]:
+                    player.money += player.cur_round_bids[bid]
+                # If came second then gain 1
+                elif bid == winners[1]:
+                    player.money += 1
+                # else lose 1
+                else:
+                    player.money -= 1
+
+    def game_end_scoring(self, winners):
+        # Add in final round bidding
+
+        max_score = float('-inf')
+        player_winner = - 1
+        scores = []
+        for i in range(len(self.players)):
+            if self.players[i].money > max_score:
+                max_score = self.players[i].money
+                player_winner = i
+            scores.append([i, self.players[i].money])
+
+        return player_winner, scores
 
     def start_game(self):
         if not self.players:
@@ -111,8 +194,24 @@ class Game:
             return
 
         game_finished = False
-        self.final_tiles_bids = []
+
 
         while(not game_finished):
-            res = self.game_round()
+            # Run round
+            winners = self.game_round()
+            # Update money for round end
+            self.round_end_scoring(winners)
+            # Check for end of game
+            if self.board[-1]:
+                game_finished = True
+
+        # Final results
+        overall_winner, results = self.game_end_scoring(winners)
+        print(self.board)
+        print(f'overall winner was {overall_winner} and results were {results}')
+
+
+
+
+
 

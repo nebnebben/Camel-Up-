@@ -35,5 +35,17 @@ class test_bot:
 
         """
 
-        return [0, 0]
+        # Ask for move
+        move1 = input('Enter the first part of your move')
+        move1 = int(move1)
+        if move1 == 0:
+            return [0, 0]
+
+        move2 = input('Enter the second part of your move')
+        if move2 != 1:
+            return [move1, move2]
+
+        move3 = input('Enter the third part of your move')
+        return [move1, [move2, move3]]
+
 

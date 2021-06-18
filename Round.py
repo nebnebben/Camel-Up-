@@ -7,6 +7,9 @@ class Round:
         for camel in camels:
             self.tiles[camel] = round_tiles
 
+        # Initial camels
+        self.initial_camels = camels
+
         # camels that haven't yet moved
         self.unmoved_camels = camels
 
@@ -47,7 +50,7 @@ class Round:
         # pick a random number
         dice = random.randrange(1, 4)
         # Find camel position
-        for i,square in enumerate(board):
+        for i, square in enumerate(board):
             if camel in square:
                 position = i
 
@@ -56,3 +59,49 @@ class Round:
 
         return board
 
+    # Place a tile down
+    def place_tile(self, board, location, direction):
+        # Check that the location selected is valid
+        if location < 0 or location > 15:
+            print('Out of range')
+            raise
+        if board[location] != '':
+            print('Non empty square')
+            raise
+        if location > 0 and board[location-1] == '>' or board[location-1] == '<':
+            print('Adjacent square with tile')
+            raise
+        if location < 15 and board[location+1] == '>' or board[location+1] == '<':
+            print('Adjacent square with tile')
+            raise
+
+        # Amend board
+        board[location] = direction
+
+        return board
+
+    # Clean board of desert tiles
+    def remove_tiles(self, board):
+        for i in range(len(board)):
+            if board[i] == '>' or board[i] == '<':
+                board[i] = ['']
+        return board
+
+    def get_winners(self, board):
+        # Find camel positions
+        positions = {}
+        for camel in self.initial_camels:
+            for i, square in enumerate(board):
+                # List camel position
+                if camel in square:
+                    positions[camel] = i
+
+        # Gets positions of camels in board, descending
+        pos = sorted(list(set(positions.values())), reverse=True)
+        outcome = []
+        for position in pos:
+            # from top of camel stack down
+            for camel in board[position][::-1]:
+                outcome += [camel]
+
+        return outcome
