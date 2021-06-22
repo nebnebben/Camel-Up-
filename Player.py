@@ -1,16 +1,17 @@
 
 class Player:
-    total_winner_bids = []
-    total_loser_bids = []
-    # Of the form camel: amount
-    cur_round_bids = {}
-    used_tile = False
-    tile_location = None
 
     def __init__(self, money, bot):
         self.money = money
         # initialise bot
         self.ai = bot()
+
+        self.total_winner_bids = []
+        self.total_loser_bids = []
+        # Of the form camel: amount
+        self.cur_round_bids = {}
+        self.used_tile = False
+        self.tile_location = None
 
     # make bid for current round
     def make_round_bid(self, amount, camel):

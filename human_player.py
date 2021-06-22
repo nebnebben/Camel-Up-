@@ -1,5 +1,5 @@
 
-class test_bot:
+class human_player_actual:
 
 
     def __init__(self):
@@ -42,10 +42,11 @@ class test_bot:
             return [0, 0]
 
         move2 = input('Enter the second part of your move')
-        if move2 != 1:
+        if move1 != 1:
             return [move1, move2]
 
         move3 = input('Enter the third part of your move')
+        move2 = int(move2)
         return [move1, [move2, move3]]
 
 

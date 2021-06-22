@@ -5,18 +5,19 @@ class Round:
         # Record betting tiles for current round
         self.tiles = {}
         for camel in camels:
-            self.tiles[camel] = round_tiles
+            self.tiles[camel] = round_tiles[:]
 
         # Initial camels
-        self.initial_camels = camels
+        self.initial_camels = camels[:]
 
         # camels that haven't yet moved
-        self.unmoved_camels = camels
+        self.unmoved_camels = camels[:]
 
     # board: full board state
     # positions of the camels: dict, Letter: board pos
-    def calculate(self, board, pos, cur_camel, cur_roll):
-        money = 0
+    def calculate(self, board, pos, cur_camel, cur_roll, desert_tiles):
+        # players to get money
+        money = []
         # Get camel position in camel stack
         ind = board[pos].index(cur_camel)
         # Camel stack is that camel and everything after
@@ -31,10 +32,15 @@ class Round:
 
         # Check for traps and update final board positions
         if board[pos] == '>':
-            money += 1
+            # records who owns the tile stepped on
+            # desert_tiles[pos] = player
+            money.append(desert_tiles[pos])
             pos += 1
             board[pos] += stack
         elif board[pos] == '<':
+            # records who owns the tile stepped on
+            # desert_tiles[pos] = player
+            money.append(desert_tiles[pos])
             money += 1
             pos -= 1
             board[pos] = stack + board[pos]
@@ -43,7 +49,7 @@ class Round:
 
         return board, money
 
-    def advance_game(self, board):
+    def advance_game(self, board, desert_tiles):
         # picks a random unmoved camel
         camel = random.choice(self.unmoved_camels)
         self.unmoved_camels.remove(camel)
@@ -54,10 +60,12 @@ class Round:
             if camel in square:
                 position = i
 
-        # Change board
-        board, _ = self.calculate(board, position, camel, dice)
+        print(f'Pyramid roll: {camel} {dice}')
 
-        return board
+        # Change board
+        board, money = self.calculate(board, position, camel, dice, desert_tiles)
+
+        return board, money
 
     # Place a tile down
     def place_tile(self, board, location, direction):
@@ -65,7 +73,7 @@ class Round:
         if location < 0 or location > 15:
             print('Out of range')
             raise
-        if board[location] != '':
+        if board[location] != []:
             print('Non empty square')
             raise
         if location > 0 and board[location-1] == '>' or board[location-1] == '<':
@@ -84,7 +92,7 @@ class Round:
     def remove_tiles(self, board):
         for i in range(len(board)):
             if board[i] == '>' or board[i] == '<':
-                board[i] = ['']
+                board[i] = []
         return board
 
     def get_winners(self, board):
