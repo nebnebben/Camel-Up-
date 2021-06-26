@@ -72,7 +72,7 @@ class Round:
         if location < 0 or location > 15:
             print('Out of range')
             raise
-        if board[location] != []:
+        if board[location]:
             print('Non empty square')
             raise
         if location > 0 and board[location-1] == '>' or board[location-1] == '<':

@@ -33,7 +33,7 @@ class Game:
         # Get camel starting positions
         # Get order and position of camels first
         order = random.sample(self.camels, len(self.camels))
-        dice = [random.randrange(1, 4) for i in range(len(self.camels))]
+        dice = [random.randrange(0, 3) in range(len(self.camels))]
         for i in range(len(order)):
             self.board[dice[i]] += order[i]
             # self.positions[order[i]] = dice[i] - does nothing
@@ -81,6 +81,7 @@ class Game:
             # Add desert tile
             self.desert_tiles[location] = current_player
             self.players[current_player].used_tile = True
+            self.players[current_player].tile_location = location
 
         # Round betting tile
         elif move[0] == 2:
@@ -167,8 +168,11 @@ class Game:
         self.desert_tiles = {}
         for player in self.players:
             player.used_tile = False
+            player.tile_location = None
 
         print('Round end')
+        for i, player in enumerate(self.players):
+            print(f'Player {i} has £{player.money}')
         print('')
         # end round
         return winners
