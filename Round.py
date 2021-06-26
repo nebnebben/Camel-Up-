@@ -41,7 +41,6 @@ class Round:
             # records who owns the tile stepped on
             # desert_tiles[pos] = player
             money.append(desert_tiles[pos])
-            money += 1
             pos -= 1
             board[pos] = stack + board[pos]
         else:

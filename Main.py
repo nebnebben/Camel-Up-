@@ -80,6 +80,7 @@ class Game:
             self.board = cur_round.place_tile(deepcopy(self.board), location, direction)
             # Add desert tile
             self.desert_tiles[location] = current_player
+            self.players[current_player].used_tile = True
 
         # Round betting tile
         elif move[0] == 2:
@@ -164,6 +165,8 @@ class Game:
         # Remove desert tiles
         self.board = cur_round.remove_tiles(deepcopy(self.board))
         self.desert_tiles = {}
+        for player in self.players:
+            player.used_tile = False
 
         print('Round end')
         print('')
@@ -184,7 +187,9 @@ class Game:
                     winnings = -1
 
                 player.money += winnings
-                print(f'Player {i} wins {winnings}')
+                print(f'Player {i} bet on {bid} wins {winnings}')
+
+            player.cur_round_bids = {}
 
     def game_end_bets(self, winners):
         # Resolve scoring for bidding on the losers
@@ -203,7 +208,7 @@ class Game:
 
         # bidding on the winners
         rewards = self.final_tiles[:]
-        for bid in self.final_bids_losers:
+        for bid in self.final_bids_winners:
             cur_player = bid[0]
             camel = bid[1]
             # If bid was on winning camel
@@ -236,8 +241,6 @@ class Game:
             return
 
         game_finished = False
-
-
         while(not game_finished):
             # Run round
             winners = self.game_round()
